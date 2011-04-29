@@ -1,6 +1,10 @@
 jsQuad
 
 ---
+Author: Patrick DeHaan <me@pdehaan.com>
+Brief:  MX-CIF Quadtrees implementation in javascript.
+
+---
 MX-CIF quadtrees store region bounded objects in the smallest sub-node
 that fully encloses them. Nodes may have any number of children and may or may
 not have four quadrant sub-nodes. The current implementation does not support

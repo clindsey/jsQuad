@@ -1,5 +1,5 @@
 /*
-Title: Quadtree.js
+Title: jsQuad.js
 Author: Patrick DeHaan <me@pdehaan.com>
 Brief:  MX-CIF Quadtrees implementation in javascript.
 */
