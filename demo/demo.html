@@ -1,3 +1,6 @@
+<!--
+The code here isn't very pretty, but I feel pretty good about how it performs.
+-->
 <!doctype html>
 <html>
 <head>
@@ -27,8 +30,6 @@ window.onload = function() {
 	var black = new Image();
 	black.src = 'blackcircle.png';
 	
-	
-	
 	// This is a fairly minimal implementation of an object class supported
 	// by jsQuad
 	var Circle = function(x, y, r, vx, vy) {
@@ -40,6 +41,7 @@ window.onload = function() {
 	};
 	Circle.prototype = {
 		move: function(dt) {
+			// kind of like gravity, but mostly just fun
 			var mdx = this.x - mx;
 			var mdy = this.y - my;
 			var md = mdx*mdx+mdy*mdy;
@@ -50,9 +52,11 @@ window.onload = function() {
 				this.vy += mdy*ns*g*md*dt;
 			}
 			
+			// move it
 			this.x += this.vx * dt;
 			this.y += this.vy * dt;
 			
+			// slow down
 			this.vx *= Math.pow(0.8, dt);
 			this.vy *= Math.pow(0.8, dt);
 			
