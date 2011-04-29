@@ -22,6 +22,8 @@ window.onload = function() {
 	var ctx = cv.getContext('2d');
 	
 	var circles = [];
+	
+	
 	var comp = 0;
 	var avgComp= 0;
 	
@@ -157,8 +159,9 @@ window.onload = function() {
 		},
 	}; // Circle.prototype
 	
-	
-	for (var i=0; i<1000; i++) {
+	window.location.toString().match(/\?n=(\d+)$/);
+	var nCircles = parseInt(RegExp.$1) || 100;
+	for (var i=0; i<nCircles; i++) {
 		var circle = new Circle(
 			Math.random()*520+40,
 			Math.random()*520+40,
@@ -213,8 +216,15 @@ window.onload = function() {
 <body>
 	<div>FPS: <span id='fps'>0</span></div>
 	<div>Circle to Circle comparisons per frame: <span id='comp'>0</span></div>
+	<div>
+		n =
+		<a href="?n=100">100</a>
+		<a href="?n=250">250</a>
+		<a href="?n=500">500</a>
+		<a href="?n=1000">1000</a>
+	</div>
 	<canvas id='canvas' height='600' width='600' style='border:1px solid #000'></canvas>
-	<p>One thousand circles bouncing against the walls of a square. They're highlighted red whenever they're overlapping another circle. Also, they're attracted to your mouse and repel each other (no collision, just an acceleration away from neighbors).</p>
+	<p>N circles bouncing against the walls of a square. They're highlighted red whenever they're overlapping another circle. Also, they're attracted to your mouse and repel each other (no collision, just an acceleration away from neighbors).</p>
 	<p>For every frame each circle is accelerated and moved based on distance from the mouse, has it's position in the quadtree updated, then searches the tree for other circles with a touching bounding box which are then compared based on distance to test for intersection. The last part is what shows of the advantage of a spatial partition. A naive comparison method (every object against every object) would result in 1000000 comparisons per frame, compared to the average you see above.</p>
 </body>
 </html>
