@@ -55,24 +55,32 @@ var subdivide = function(node) {
 Node.prototype = {
 	insert: function(child) {
 		var node = this;
+		// first establish the object is even in the node. If not, just make
+		// it a child and move on.
+		// TODO: non-enclosed objects should probably either throw an error or
+		// cause the node to create parents for itself
 		if (child.QTenclosed(node.xMin,node.yMin,node.xMax,node.yMax)) {
-			if (node.q1 === null && node.maxDepth > 0) {
-				subdivide(node);
-			}
-			if (node.q1 !== null) {
-				var q = child.QTquadrant(node.x, node.y);
-				if (q == 1) {
-					node.q1.insert(child);
-				} else if (q == 2) {
-					node.q2.insert(child);
-				} else if (q == 3) {
-					node.q3.insert(child);
-				} else if (q == 4) {
-					node.q4.insert(child);
-				} else {
-					node.children.push(child);
-					child.QTsetParent(node);
-				}
+			this._insert(child);
+		} else {
+			node.children.push(child);
+			child.QTsetParent(node);
+		}
+	},
+	_insert: function(child) {
+		var node = this;
+		if (node.q1 === null && node.maxDepth > 0) {
+			subdivide(node);
+		}
+		if (node.q1 !== null) {
+			var q = child.QTquadrant(node.x, node.y);
+			if (q == 1) {
+				node.q1._insert(child);
+			} else if (q == 2) {
+				node.q2._insert(child);
+			} else if (q == 3) {
+				node.q3._insert(child);
+			} else if (q == 4) {
+				node.q4._insert(child);
 			} else {
 				node.children.push(child);
 				child.QTsetParent(node);
@@ -89,7 +97,7 @@ Node.prototype = {
 	},
 	_reinsert: function(child) {
 		if (child.QTenclosed(this.xMin, this.yMin, this.xMax, this.yMax)) {
-			this.insert(child);
+			this._insert(child);
 		} else {
 			if (this.parent === null) { return; } // todo: throw perhaps
 			this.parent._reinsert(child);
