@@ -41,13 +41,11 @@ Useage
 ===
 Creation
 ---
-var tree = new Quadtree(xMin, yMin, xMax, yMax, maxDepth);
+	var tree = new Quadtree(xMin, yMin, xMax, yMax, maxDepth);
 
 [xMin], [yMin], [xMax], and [yMax] define the boundaries of the quadtree.
 
-[maxDepth] defines the maximum number of times to subdivide the tree nodes.
-There will be at most 4^[maxDepth] of the smallest sized nodes, with a height
-and width equal to ([xMax|yMax]-[xMin|yMin])/2^[maxDepth].
+[maxDepth] defines the maximum number of times to subdivide the tree nodes. A value of 0 indicates no subdivisions.
 
 Insertion
 ---
