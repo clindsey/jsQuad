@@ -51,7 +51,7 @@ window.onload = function() {
 			var md = mdx*mdx+mdy*mdy;
 			if (md > 0 && md < 300*300) {
 				var ns = 1/Math.sqrt(md);
-				var g = -20*this.r/(md);
+				var g = -20*(20/this.r)/(md);
 				this.vx += mdx*ns*g*md*dt;
 				this.vy += mdy*ns*g*md*dt;
 			}
