@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+<head>
+<title>jsQuad Demo</title>
+<script src='../jsQuad.js' type='text/javascript'></script>
+<script>
+window.onload = function() {
+	var cv = document.getElementById('canvas');
+	var ctx = cv.getContext('2d');
+	
+	var rects = [];
+	var tree = new jsQuad(0,0,300,300,8);
+	
+	var Rect = function(x, y, w, h, vx, vy) {
+		this.x = x;
+		this.y = y;
+		this.w = w;
+		this.h = h;
+		this.vx = vx;
+		this.vy = vy;
+	};
+	Rect.prototype = {
+		move: function(dt) {
+			this.x += this.vx * dt;
+			this.y += this.vy * dt;
+			
+			var ix = -this.x;
+			if (ix > 0) {
+				this.vx = -this.vx;
+				this.x += ix*2;
+			} else {
+				ix = this.x + this.w - 300;
+				if (ix > 0) {
+					this.vx = -this.vx;
+					this.x -= ix*2;
+				}
+			}
+			var iy = -this.y;
+			if (iy > 0) {
+				this.vy = -this.vy;
+				this.y += iy;
+			} else {
+				iy = this.y + this.h - 300;
+				if (iy > 0) {
+					this.vy = -this.vy;
+					this.y -= iy;
+				}
+			}
+			tree.reinsert(this);
+		},
+		draw: function() {
+			tree.getOverlapping(
+				this.x,this.y,
+				this.x+this.w,this.y+this.h
+			);
+			ctx.strokeStyle = 'rgba(255,0,0,1)';
+			
+			ctx.strokeStyle = 'rgba(0,0,0,1)';
+			ctx.strokeRect(
+				this.x, this.y,
+				this.w, this.h
+			);
+		},
+		// jsQuad methods
+		
+		QTsetParent: function(parent) {
+			this.QTparent = parent;
+		},
+		QTgetParent: function() {
+			return this.QTparent;
+		},
+		QTenclosed: function(xMin,yMin,xMax,yMax) {
+			var x0 = this.x, x1 = x0+this.w;
+			var y0 = this.y, y1 = y0+this.h;
+			return x0 >= xMin && x1 <= xMax && y0 >= yMin && y1 <= yMax;
+		},
+		QToverlaps: function(xMin,yMin,xMax,yMax) {
+			var x0 = this.x, x1 = x0+this.w;
+			var y0 = this.y, y1 = y0+this.h;
+			return !(x1 < xMin || x0 > xMax || y1 < yMin || y0 > yMax);
+		},
+		QTquadrant: function(x,y) {
+			var x0 = this.x, x1 = x0+this.w;
+			if (x0 > x) { // 1 or 4
+				var y0 = this.y, y1 = y0+this.h;
+				if (y0 > y) {
+					return 1;
+				} else if (y1 < y) {
+					return 4;
+				} else {
+					return 0;
+				}
+			} else if (x1 < x) {
+				var y0 = this.y, y1 = y0+this.h;
+				if (y0 > y) {
+					return 2;
+				} else if (y1 < y) {
+					return 3;
+				} else {
+					return 0;
+				}
+			} else {
+				return 0;
+			}
+		},
+	}; // Rect.prototype
+	
+	
+	for (var i=0; i<50; i++) {
+		var rect = new Rect(
+			Math.random()*200 + 50,
+			Math.random()*200 + 50,
+			Math.random()*50,
+			Math.random()*50,
+			Math.random()*200-100,
+			Math.random()*200-100
+		);
+		rects.push(rect);
+		tree.insert(rect);
+	}
+	
+	var loop = function() {
+		var n = rects.length;
+		for (var i=0; i<n; i++) {
+			rects[i].move(.02);
+		}
+		ctx.clearRect(0,0,300,300);
+		for (var i=0; i<n; i++) {
+			rects[i].draw();
+		}
+		setTimeout(loop, 20);
+	};
+	loop();
+	
+}; // window.onload	
+</script>
+</head>
+<body>
+	<canvas id='canvas' height='300' width='300' style='border:1px solid #000'></canvas>
+</body>
+</html>
