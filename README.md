@@ -104,6 +104,3 @@ Clearing
 	tree.clear()
 This empties the tree (all children and sub-nodes are removed).
 
-
-
-
