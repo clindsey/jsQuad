@@ -8,9 +8,10 @@ window.onload = function() {
 	var cv = document.getElementById('canvas');
 	var ctx = cv.getContext('2d');
 	
-	var rects = [];
-	var tree = new jsQuad(0,0,300,300,8);
 	
+	
+	var rects = [];
+	var tree = new jsQuad(0,0,600,600,4);
 	
 	// This is a fairly minimal implementation of an object class supported
 	// by jsQuad
@@ -32,7 +33,7 @@ window.onload = function() {
 				this.vx = -this.vx;
 				this.x += ix*2;
 			} else {
-				ix = this.x + this.w - 300;
+				ix = this.x + this.w - 600;
 				if (ix > 0) {
 					this.vx = -this.vx;
 					this.x -= ix*2;
@@ -43,7 +44,7 @@ window.onload = function() {
 				this.vy = -this.vy;
 				this.y += iy;
 			} else {
-				iy = this.y + this.h - 300;
+				iy = this.y + this.h - 600;
 				if (iy > 0) {
 					this.vy = -this.vy;
 					this.y -= iy;
@@ -59,16 +60,20 @@ window.onload = function() {
 			);
 			var len = touching.length;
 			
-			ctx.strokeStyle = 'rgba(255,0,0,1)';
+			/*ctx.strokeStyle = 'rgba(255,0,0,1)';
 			ctx.beginPath();
 			for (var i=0; i < len; i++) {
 				var rect = touching[i];
 				ctx.moveTo(this.x+this.w/2,this.y+this.h/2);
 				ctx.lineTo(rect.x+rect.w/2,rect.y+rect.h/2);
 			}
-			ctx.stroke();
+			ctx.stroke();*/
 			
-			ctx.strokeStyle = 'rgba(0,0,0,1)';
+			if (len > 1) {
+				ctx.strokeStyle = 'rgba(255,0,0,1)';
+			} else {
+				ctx.strokeStyle = 'rgba(0,0,0,1)';
+			}
 			ctx.strokeRect(
 				this.x, this.y,
 				this.w, this.h
@@ -119,12 +124,12 @@ window.onload = function() {
 	}; // Rect.prototype
 	
 	
-	for (var i=0; i<50; i++) {
+	for (var i=0; i<1000; i++) {
 		var rect = new Rect(
-			Math.random()*200 + 50,
-			Math.random()*200 + 50,
-			Math.random()*50,
-			Math.random()*50,
+			Math.random()*290,
+			Math.random()*290,
+			Math.random()*10,
+			Math.random()*10,
 			Math.random()*200-100,
 			Math.random()*200-100
 		);
@@ -132,16 +137,29 @@ window.onload = function() {
 		tree.insert(rect);
 	}
 	
+	var fpsCounter = document.getElementById('fpscounter');
+	var fps = 0;
+	
+	var pTime = new Date();
+	
 	var loop = function() {
+		var time = new Date();
+		var dt = time - pTime;
+		pTime = time;
+		if (dt !== 0) {
+			fps = 1000/dt;
+			fpsCounter.innerHTML = parseInt(fps);
+		}
 		var n = rects.length;
 		for (var i=0; i<n; i++) {
-			rects[i].move(.02);
+			rects[i].move(dt/1000);
 		}
-		ctx.clearRect(0,0,300,300);
+		ctx.clearRect(0,0,600,600);
 		for (var i=0; i<n; i++) {
 			rects[i].draw();
 		}
-		setTimeout(loop, 20);
+		
+		setTimeout(loop, 1);
 	};
 	loop();
 	
@@ -149,6 +167,7 @@ window.onload = function() {
 </script>
 </head>
 <body>
-	<canvas id='canvas' height='300' width='300' style='border:1px solid #000'></canvas>
+	<div>FPS: <span id='fpscounter'>0</span></div>
+	<canvas id='canvas' height='600' width='600' style='border:1px solid #000'></canvas>
 </body>
 </html>
