@@ -12,6 +12,31 @@ This form of quadtree is useful for storing objects with 2d spatial dimensions w
 
 Note that it is also perfectly reasonable to store point objects as well, just pretend it's boundaries are the same.
 
+
+Object method requirements
+---
+For flexability, this implementation defers certain logic to the contained objects, thus requiring that they provide the following methods:
+
+	.QTenclosed(xMin, yMin, xMax, yMax) -> boolean
+returns true if the object fits entirely within the boundaries given.
+
+	.QToverlaps(xMin, yMin, xMax, yMax) -> boolean
+return true if the object overlaps the boundaries given.
+
+	.QTquadrant(x,y) -> number
+returns 0 if the object overlaps either x or y, or a quadrant 1-4 (from the upper right counterclockwise)
+
+	.QTminDistance(xMin, yMin, xMax, yMax) -> number
+returns the mimumum distance of the object and the given boundary, along either the x or y axis.
+
+	.QTsetParent(parent) -> void
+stores the given parent node somewhere it can be recalled.
+
+	.QTgetParent() -> node
+returns the stored parent node.
+
+No access to the objects will occur except through these methods. This enables object boundary definitions to be handled in whatever manner is most suitable for that type. Note that if objects are moved they should call the quadtree's .reinsert(child) method in order to rebuild the tree.
+
 Useage
 ===
 Creation
@@ -41,7 +66,7 @@ If that value is sufficiently small, fewer insertion recursions are required.
 [child] is removed from the tree.
 
 Retrieval
-===
+---
 	tree.getChildren()
 returns all objects in the tree
 
@@ -52,10 +77,12 @@ returns all objects that are entirely enclosed by the given boundary.
 return all objects that are overlapping the given boundary.
 
 ---
-WOAH THERE, LOOKS LIKE I STILL NEED TO DO THINGS BEYOND THIS POINT
+
+TODO: Everything that follows
+===
 
 Mapping
-===
+---
 These methods work like the retrieval methods, but the returned list contains
 the result of executing [callback] with each object instead of the objects.
 
@@ -64,7 +91,7 @@ the result of executing [callback] with each object instead of the objects.
 	tree.mapOverlapping(xMin, yMin, xMax, yMax, callback)
 
 Iterating
-===
+---
 These functions are nearly identical to the mapping functions, but do not
 return the results.
 
@@ -73,33 +100,10 @@ return the results.
 	tree.applyOverlapping(...)
 
 Clearing
-===
+---
 	tree.clear()
 This empties the tree (all children and sub-nodes are removed).
 
 
-Object method requirements
----
-For flexability, this implementation defers certain logic to the contained
-elements, thus requiring that they provide the following methods:
 
-	.QTenclosed(xMin, yMin, xMax, yMax) -> boolean
-returns true if the object fits entirely within the boundaries given.
-
-	.QToverlaps(xMin, yMin, xMax, yMax) -> boolean
-return true if the object overlaps the boundaries given.
-
-	.QTquadrant(x,y) -> number
-returns 0 if the object overlaps either x or y, or a quadrant 1-4 (from the upper right counterclockwise)
-
-	.QTminDistance(xMin, yMin, xMax, yMax) -> number
-returns the mimumum distance of the object and the given boundary, along either the x or y axis.
-
-	.QTsetParent(parent) -> void
-stores the given parent node somewhere it can be recalled.
-
-	.QTgetParent() -> node
-returns the stored parent node.
-
-No access to the objects will occur except through these methods. This enables object boundary definitions to be handled in whatever manner is most suitable for that type. Note that if objects are moved they should call the quadtree's .reinsert(child) method in order to rebuild the tree.
 
