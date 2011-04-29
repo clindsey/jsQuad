@@ -17,6 +17,9 @@ window.onload = function() {
 	var ctx = cv.getContext('2d');
 	
 	var circles = [];
+	var comp = 0;
+	var avgComp= 0;
+	
 	var tree = new jsQuad(0,0,600,600,4);
 	
 	var red = new Image();
@@ -85,6 +88,7 @@ window.onload = function() {
 			var cur = this;
 			
 			tree.applyOverlapping(x-r,y-r,x+r,y+r, function(t) {
+				comp++;
 				if (t !== cur) {
 					var dx = x - t.x;
 					var dy = y - t.y;
@@ -154,12 +158,14 @@ window.onload = function() {
 	var fpsCounter = document.getElementById('fps');
 	var fps = 0;
 	
+	var compCounter = document.getElementById('comp');
+	
 	var prevTime = (new Date)*1-1;
 	var time;
 	var mainLoop = function() {
 		var dt = ((time=new Date)-prevTime);
 		var lFps = 1000/dt;
-		fps += (lFps - fps) / 50;
+		fps += (lFps - fps) / 20;
 		prevTime = time;
 		
 		var n = circles.length;
@@ -167,10 +173,12 @@ window.onload = function() {
 			circles[i].move(dt/1000);
 		}
 		
+		comp = 0;
 		ctx.clearRect(0,0,600,600);
 		for (var i=0; i<n; i++) {
 			circles[i].draw();
 		}
+		avgComp = avgComp += (comp - avgComp)/20;
 		
 		ctx.strokeStyle = 'rgba(0,0,255,1)';
 		ctx.strokeRect(mx-5,my-5,10,10);
@@ -179,6 +187,7 @@ window.onload = function() {
 	};
 	setInterval(function() {
 		fpsCounter.innerHTML = fps.toFixed(1);
+		compCounter.innerHTML = comp.toFixed(1);
 	}, 200);
 	mainLoop();
 	
@@ -189,7 +198,9 @@ window.onload = function() {
 </head>
 <body>
 	<div>FPS: <span id='fps'>0</span></div>
+	<div>Circle to Circle comparisons per frame: <span id='comp'>0</span></div>
 	<canvas id='canvas' height='600' width='600' style='border:1px solid #000'></canvas>
-	<p>One thousand circles bouncing against the walls of a square. They're highlighted red whenever they're overlapping another circle. Also, they're attracted to your mouse...</p>
+	<p>One thousand circles bouncing against the walls of a square. They're highlighted red whenever they're overlapping another circle. Also, they're attracted to your mouse.</p>
+	<p>For every frame each circle is accelerated and moved based on distance from the mouse, has it's position in the quadtree updated, then searches the tree for other circles with a touching bounding box which are then compared based on distance to test for intersection. The last part is what shows of the advantage of a spatial partition. A naive comparison method (every object against every object) would result in 1000000 comparisons per frame, compared to the average you see above.</p>
 </body>
 </html>
