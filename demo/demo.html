@@ -8,43 +8,45 @@ window.onload = function() {
 	var cv = document.getElementById('canvas');
 	var ctx = cv.getContext('2d');
 	
-	
-	
-	var rects = [];
+	var circles = [];
 	var tree = new jsQuad(0,0,600,600,4);
+	
+	var red = new Image();
+	red.src = 'redcircle.png';
+	var black = new Image();
+	black.src = 'blackcircle.png';
 	
 	// This is a fairly minimal implementation of an object class supported
 	// by jsQuad
-	var Rect = function(x, y, w, h, vx, vy) {
+	var Circle = function(x, y, r, vx, vy) {
 		this.x = x;
 		this.y = y;
-		this.w = w;
-		this.h = h;
+		this.r = r;
 		this.vx = vx;
 		this.vy = vy;
 	};
-	Rect.prototype = {
+	Circle.prototype = {
 		move: function(dt) {
 			this.x += this.vx * dt;
 			this.y += this.vy * dt;
 			// let's bounce!
-			var ix = -this.x;
+			var ix = -(this.x-this.r);
 			if (ix > 0) {
 				this.vx = -this.vx;
 				this.x += ix*2;
 			} else {
-				ix = this.x + this.w - 600;
+				ix = this.x + this.r - 600;
 				if (ix > 0) {
 					this.vx = -this.vx;
 					this.x -= ix*2;
 				}
 			}
-			var iy = -this.y;
+			var iy = -(this.y-this.r);
 			if (iy > 0) {
 				this.vy = -this.vy;
 				this.y += iy;
 			} else {
-				iy = this.y + this.h - 600;
+				iy = this.y + this.r - 600;
 				if (iy > 0) {
 					this.vy = -this.vy;
 					this.y -= iy;
@@ -54,30 +56,27 @@ window.onload = function() {
 			tree.reinsert(this);
 		},
 		draw: function() {
+			var img = black;
+			var x = this.x, y = this.y, r = this.r;
 			var touching = tree.getOverlapping(
-				this.x,this.y,
-				this.x+this.w,this.y+this.h
+				x-r,y-r,
+				x+r,y+r
 			);
+			
 			var len = touching.length;
-			
-			/*ctx.strokeStyle = 'rgba(255,0,0,1)';
-			ctx.beginPath();
-			for (var i=0; i < len; i++) {
-				var rect = touching[i];
-				ctx.moveTo(this.x+this.w/2,this.y+this.h/2);
-				ctx.lineTo(rect.x+rect.w/2,rect.y+rect.h/2);
+			for (var i=0;i<len;i++) {
+				var t = touching[i];
+				if (touching[i] !== this) {
+					var dx = x - t.x;
+					var dy = y - t.y;
+					var dr = r + t.r;
+					if (dx*dx+dy*dy<=dr*dr) {
+						img = red;
+						break;
+					}
+				}
 			}
-			ctx.stroke();*/
-			
-			if (len > 1) {
-				ctx.strokeStyle = 'rgba(255,0,0,1)';
-			} else {
-				ctx.strokeStyle = 'rgba(0,0,0,1)';
-			}
-			ctx.strokeRect(
-				this.x, this.y,
-				this.w, this.h
-			);
+			ctx.drawImage(img, x-r,y-r,r*2,r*2);
 		},
 		// jsQuad methods
 		
@@ -88,19 +87,19 @@ window.onload = function() {
 			return this.QTparent;
 		},
 		QTenclosed: function(xMin,yMin,xMax,yMax) {
-			var x0 = this.x, x1 = x0+this.w;
-			var y0 = this.y, y1 = y0+this.h;
+			var x0 = this.x-this.r, x1 = this.x+this.r;
+			var y0 = this.y-this.r, y1 = this.y+this.r;
 			return x0 >= xMin && x1 <= xMax && y0 >= yMin && y1 <= yMax;
 		},
 		QToverlaps: function(xMin,yMin,xMax,yMax) {
-			var x0 = this.x, x1 = x0+this.w;
-			var y0 = this.y, y1 = y0+this.h;
+			var x0 = this.x-this.r, x1 = this.x+this.r;
+			var y0 = this.y-this.r, y1 = this.y+this.r;
 			return !(x1 < xMin || x0 > xMax || y1 < yMin || y0 > yMax);
 		},
 		QTquadrant: function(x,y) {
-			var x0 = this.x, x1 = x0+this.w;
+			var x0 = this.x-this.r, x1 = this.x+this.r;
 			if (x0 > x) { // 1 or 4
-				var y0 = this.y, y1 = y0+this.h;
+				var y0 = this.y-this.r, y1 = this.y+this.r;
 				if (y0 > y) {
 					return 1;
 				} else if (y1 < y) {
@@ -109,7 +108,7 @@ window.onload = function() {
 					return 0;
 				}
 			} else if (x1 < x) {
-				var y0 = this.y, y1 = y0+this.h;
+				var y0 = this.y-this.r, y1 = this.y+this.r;
 				if (y0 > y) {
 					return 2;
 				} else if (y1 < y) {
@@ -121,24 +120,22 @@ window.onload = function() {
 				return 0;
 			}
 		},
-	}; // Rect.prototype
+	}; // Circle.prototype
 	
 	
 	for (var i=0; i<1000; i++) {
-		var rect = new Rect(
-			Math.random()*290,
-			Math.random()*290,
-			Math.random()*10,
-			Math.random()*10,
+		var circle = new Circle(
+			Math.random()*520+40,
+			Math.random()*520+40,
+			Math.random()*5+2,
 			Math.random()*200-100,
 			Math.random()*200-100
 		);
-		rects.push(rect);
-		tree.insert(rect);
+		circles.push(circle);
+		tree.insert(circle);
 	}
-	
 	var fpsCounter = document.getElementById('fps');
-	var fps = 0;
+	var fps = 50;
 	
 	var prevTime = new Date();
 	var loop = function() {
@@ -146,18 +143,17 @@ window.onload = function() {
 		var dt = time - prevTime;
 		prevTime = time;
 		if (dt !== 0) {
-			fps = fps*0.95 + 50/dt; // low pass filter lol
+			fps = fps*0.5 + 500/dt; // low pass filter lol
 			fpsCounter.innerHTML = fps;
 		}
-		var n = rects.length;
+		var n = circles.length;
 		for (var i=0; i<n; i++) {
-			rects[i].move(dt/1000);
+			circles[i].move(dt/1000);
 		}
 		
 		ctx.clearRect(0,0,600,600);
-		var n = rects.length;
 		for (var i=0; i<n; i++) {
-			rects[i].draw();
+			circles[i].draw();
 		}
 		setTimeout(loop, 1);
 	};
@@ -169,6 +165,6 @@ window.onload = function() {
 <body>
 	<div>FPS: <span id='fps'>0</span></div>
 	<canvas id='canvas' height='600' width='600' style='border:1px solid #000'></canvas>
-	<p>One thousand moving rectangles bouncing inside a square. They're highlighted red whenever they're overlapping another rectangle.</p>
+	<p>One thousand circles bouncing against the walls of a square. They're highlighted red whenever they're overlapping another circle.</p>
 </body>
 </html>
