@@ -11,6 +11,9 @@ window.onload = function() {
 	var rects = [];
 	var tree = new jsQuad(0,0,300,300,8);
 	
+	
+	// This is a fairly minimal implementation of an object class supported
+	// by jsQuad
 	var Rect = function(x, y, w, h, vx, vy) {
 		this.x = x;
 		this.y = y;
@@ -23,7 +26,7 @@ window.onload = function() {
 		move: function(dt) {
 			this.x += this.vx * dt;
 			this.y += this.vy * dt;
-			
+			// let's bounce!
 			var ix = -this.x;
 			if (ix > 0) {
 				this.vx = -this.vx;
@@ -46,14 +49,24 @@ window.onload = function() {
 					this.y -= iy;
 				}
 			}
+			// after moving, update the tree
 			tree.reinsert(this);
 		},
 		draw: function() {
-			tree.getOverlapping(
+			var touching = tree.getOverlapping(
 				this.x,this.y,
 				this.x+this.w,this.y+this.h
 			);
+			var len = touching.length;
+			
 			ctx.strokeStyle = 'rgba(255,0,0,1)';
+			ctx.beginPath();
+			for (var i=0; i < len; i++) {
+				var rect = touching[i];
+				ctx.moveTo(this.x+this.w/2,this.y+this.h/2);
+				ctx.lineTo(rect.x+rect.w/2,rect.y+rect.h/2);
+			}
+			ctx.stroke();
 			
 			ctx.strokeStyle = 'rgba(0,0,0,1)';
 			ctx.strokeRect(
