@@ -137,28 +137,28 @@ window.onload = function() {
 		tree.insert(rect);
 	}
 	
-	var fpsCounter = document.getElementById('fpscounter');
+	var fpsCounter = document.getElementById('fps');
 	var fps = 0;
 	
-	var pTime = new Date();
-	
+	var prevTime = new Date();
 	var loop = function() {
 		var time = new Date();
-		var dt = time - pTime;
-		pTime = time;
+		var dt = time - prevTime;
+		prevTime = time;
 		if (dt !== 0) {
-			fps = 1000/dt;
-			fpsCounter.innerHTML = parseInt(fps);
+			fps = fps*0.95 + 50/dt; // low pass filter lol
+			fpsCounter.innerHTML = fps;
 		}
 		var n = rects.length;
 		for (var i=0; i<n; i++) {
 			rects[i].move(dt/1000);
 		}
+		
 		ctx.clearRect(0,0,600,600);
+		var n = rects.length;
 		for (var i=0; i<n; i++) {
 			rects[i].draw();
 		}
-		
 		setTimeout(loop, 1);
 	};
 	loop();
@@ -167,7 +167,8 @@ window.onload = function() {
 </script>
 </head>
 <body>
-	<div>FPS: <span id='fpscounter'>0</span></div>
+	<div>FPS: <span id='fps'>0</span></div>
 	<canvas id='canvas' height='600' width='600' style='border:1px solid #000'></canvas>
+	<p>One thousand moving rectangles bouncing inside a square. They're highlighted red whenever they're overlapping another rectangle.</p>
 </body>
 </html>
