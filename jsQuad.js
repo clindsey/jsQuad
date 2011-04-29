@@ -54,6 +54,17 @@ var subdivide = function(node, depth) {
 };
 
 Node.prototype = {
+	clear: function() {
+		this.children.length = 0;
+		this.q1.clear();
+		this.q2.clear();
+		this.q3.clear();
+		this.q4.clear();
+		this.q1 = null;
+		this.q2 = null;
+		this.q3 = null;
+		this.q4 = null;
+	},
 	insert: function(child) {
 		var node = this;
 		// first establish the object is even in the node. If not, just make
