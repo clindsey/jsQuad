@@ -18,22 +18,19 @@ Object method requirements
 For flexability, this implementation defers certain logic to the contained objects, thus requiring that they provide the following methods:
 
 	.QTenclosed(xMin, yMin, xMax, yMax) -> boolean
-returns true if the object fits entirely within the boundaries given.
+return true if the object fits entirely within the boundary given.
 
 	.QToverlaps(xMin, yMin, xMax, yMax) -> boolean
-return true if the object overlaps the boundaries given.
+return true if the object overlaps the boundary given.
 
-	.QTquadrant(x,y) -> number
-returns 0 if the object overlaps either x or y, or a quadrant 1-4 (from the upper right counterclockwise)
-
-	.QTminDistance(xMin, yMin, xMax, yMax) -> number
-returns the mimumum distance of the object and the given boundary, along either the x or y axis.
+	.QTquadrantNode(root, x, y) -> number
+return null if the object overlaps x or y. If not, return root.q1, root.q2, root.q3, or root.q4, corresponding to the relative quadrant the object is a part of. Quadrant numbers start to the upper left and go counter-clockwise.
 
 	.QTsetParent(parent) -> void
-stores the given parent node somewhere it can be recalled.
+store the given parent node somewhere it can be recalled. Previous values may be overwritten (it's not a stack).
 
 	.QTgetParent() -> node
-returns the stored parent node.
+return the previously stored parent node.
 
 No access to the objects will occur except through these methods. This enables object boundary definitions to be handled in whatever manner is most suitable for that type. Note that if objects are moved they should call the quadtree's .reinsert(child) method in order to rebuild the tree.
 

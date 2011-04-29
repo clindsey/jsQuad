@@ -72,15 +72,9 @@ Node.prototype = {
 			subdivide(node);
 		}
 		if (node.q1 !== null) {
-			var q = child.QTquadrant(node.x, node.y);
-			if (q == 1) {
-				node.q1._insert(child);
-			} else if (q == 2) {
-				node.q2._insert(child);
-			} else if (q == 3) {
-				node.q3._insert(child);
-			} else if (q == 4) {
-				node.q4._insert(child);
+			var q = child.QTquadrantNode(node, node.x, node.y);
+			if (q !== null) {
+				q._insert(child);
 			} else {
 				node.children.push(child);
 				child.QTsetParent(node);
