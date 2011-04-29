@@ -71,11 +71,6 @@ returns all objects that are entirely enclosed by the given boundary.
 	tree.getOverlapping(xMin, yMin, xMax, yMax)
 return all objects that are overlapping the given boundary.
 
----
-
-TODO: Everything that follows
-===
-
 Mapping
 ---
 These methods work like the retrieval methods, but the returned list contains

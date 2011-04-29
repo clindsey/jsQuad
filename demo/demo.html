@@ -6,6 +6,14 @@
 <script>
 window.onload = function() {
 	var cv = document.getElementById('canvas');
+	
+	var mx = 300;
+	var my = 300;
+	cv.onmousemove = function(e) {
+		mx = e.clientX - cv.offsetLeft;
+		my = e.clientY - cv.offsetTop;
+	};
+	
 	var ctx = cv.getContext('2d');
 	
 	var circles = [];
@@ -15,6 +23,8 @@ window.onload = function() {
 	red.src = 'redcircle.png';
 	var black = new Image();
 	black.src = 'blackcircle.png';
+	
+	
 	
 	// This is a fairly minimal implementation of an object class supported
 	// by jsQuad
@@ -27,8 +37,22 @@ window.onload = function() {
 	};
 	Circle.prototype = {
 		move: function(dt) {
+			var mdx = this.x - mx;
+			var mdy = this.y - my;
+			var md = mdx*mdx+mdy*mdy;
+			if (md > 0 && md < 300*300) {
+				var ns = 1/Math.sqrt(md);
+				var g = -20*this.r/(md);
+				this.vx += mdx*ns*g*md*dt;
+				this.vy += mdy*ns*g*md*dt;
+			}
+			
 			this.x += this.vx * dt;
 			this.y += this.vy * dt;
+			
+			this.vx *= Math.pow(0.8, dt);
+			this.vy *= Math.pow(0.8, dt);
+			
 			// let's bounce!
 			var ix = -(this.x-this.r);
 			if (ix > 0) {
@@ -58,28 +82,21 @@ window.onload = function() {
 		draw: function() {
 			var img = black;
 			var x = this.x, y = this.y, r = this.r;
-			var touching = tree.getOverlapping(
-				x-r,y-r,
-				x+r,y+r
-			);
+			var cur = this;
 			
-			var len = touching.length;
-			for (var i=0;i<len;i++) {
-				var t = touching[i];
-				if (touching[i] !== this) {
+			tree.applyOverlapping(x-r,y-r,x+r,y+r, function(t) {
+				if (t !== cur) {
 					var dx = x - t.x;
 					var dy = y - t.y;
 					var dr = r + t.r;
 					if (dx*dx+dy*dy<=dr*dr) {
 						img = red;
-						break;
 					}
 				}
-			}
+			});
 			ctx.drawImage(img, x-r,y-r,r*2,r*2);
 		},
 		// jsQuad methods
-		
 		QTsetParent: function(parent) {
 			this.QTparent = parent;
 		},
@@ -135,17 +152,16 @@ window.onload = function() {
 		tree.insert(circle);
 	}
 	var fpsCounter = document.getElementById('fps');
-	var fps = 50;
+	var fps = 0;
 	
-	var prevTime = new Date();
-	var loop = function() {
-		var time = new Date();
-		var dt = time - prevTime;
+	var prevTime = (new Date)*1-1;
+	var time;
+	var mainLoop = function() {
+		var dt = ((time=new Date)-prevTime);
+		var lFps = 1000/dt;
+		fps += (lFps - fps) / 50;
 		prevTime = time;
-		if (dt !== 0) {
-			fps = fps*0.5 + 500/dt; // low pass filter lol
-			fpsCounter.innerHTML = fps;
-		}
+		
 		var n = circles.length;
 		for (var i=0; i<n; i++) {
 			circles[i].move(dt/1000);
@@ -155,9 +171,18 @@ window.onload = function() {
 		for (var i=0; i<n; i++) {
 			circles[i].draw();
 		}
-		setTimeout(loop, 1);
+		
+		ctx.strokeStyle = 'rgba(0,0,255,1)';
+		ctx.strokeRect(mx-5,my-5,10,10);
+		
+		setTimeout(mainLoop, 1);
 	};
-	loop();
+	setInterval(function() {
+		fpsCounter.innerHTML = fps.toFixed(1);
+	}, 200);
+	mainLoop();
+	
+	
 	
 }; // window.onload	
 </script>
@@ -165,6 +190,6 @@ window.onload = function() {
 <body>
 	<div>FPS: <span id='fps'>0</span></div>
 	<canvas id='canvas' height='600' width='600' style='border:1px solid #000'></canvas>
-	<p>One thousand circles bouncing against the walls of a square. They're highlighted red whenever they're overlapping another circle.</p>
+	<p>One thousand circles bouncing against the walls of a square. They're highlighted red whenever they're overlapping another circle. Also, they're attracted to your mouse...</p>
 </body>
 </html>

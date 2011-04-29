@@ -41,9 +41,9 @@ var Node = function(xMin, yMin, xMax, yMax, maxDepth, parent) {
 	this.q4 = null;
 	this.parent = parent === undefined ? null : parent;
 };
-var subdivide = function(node) {
-	var depth = node.maxDepth-1;
-	if (depth < 0) { return false; }
+
+// It will run this itself, not you.
+var subdivide = function(node, depth) {
 	var xMin = node.xMin, yMin = node.yMin,
 		xMax = node.xMax, yMax = node.yMax,
 		x = node.x, y = node.y;
@@ -52,16 +52,22 @@ var subdivide = function(node) {
 	node.q3 = new Node(xMin, yMin, x, y, depth, node);
 	node.q4 = new Node(x, yMin, xMax, y, depth, node);
 };
+
 Node.prototype = {
 	insert: function(child) {
 		var node = this;
 		// first establish the object is even in the node. If not, just make
-		// it a child and move on.
-		// TODO: non-enclosed objects should probably either throw an error or
-		// cause the node to create parents for itself
+		// it a child and move on. This
 		if (child.QTenclosed(node.xMin,node.yMin,node.xMax,node.yMax)) {
 			this._insert(child);
-		} else {
+		}
+		
+		// TODO: non-enclosed objects should probably either throw an error or
+		// cause the node to create parents for itself. This solutions keeps
+		// track of the object, but will cause false positives when selection
+		// boundaries enclose the node. Another possible solution is to create
+		// a seperate container for them.
+		else {
 			node.children.push(child);
 			child.QTsetParent(node);
 		}
@@ -69,7 +75,7 @@ Node.prototype = {
 	_insert: function(child) {
 		var node = this;
 		if (node.q1 === null && node.maxDepth > 0) {
-			subdivide(node);
+			subdivide(node, node.maxDepth-1);
 		}
 		if (node.q1 !== null) {
 			var q = child.QTquadrantNode(node, node.x, node.y);
@@ -84,7 +90,7 @@ Node.prototype = {
 			child.QTsetParent(node);
 		}
 	},
-	reinsert: function(child, isParent) {
+	reinsert: function(child) {
 		var parent = child.QTgetParent();
 		parent._remove(child);
 		parent._reinsert(child);
@@ -93,22 +99,22 @@ Node.prototype = {
 		if (child.QTenclosed(this.xMin, this.yMin, this.xMax, this.yMax)) {
 			this._insert(child);
 		} else {
-			if (this.parent === null) { return; } // todo: throw perhaps
+			if (this.parent === null) { return; }
 			this.parent._reinsert(child);
 		}
 	},
-	remove: function(child, isParent) {
-		child.QTgetParent().remove(child, true);
+	remove: function(child) {
+		// the child's parent is cached so this doesn't have to search half
+		// the tree
+		child.QTgetParent().remove(child);
 	},
 	_remove: function(child) {
+		// search children to get the index of the child, then splice it out
 		for (var i=0; i<this.children.length;i++) {
 			if (this.children[i] === child) {
 				this.children.splice(i,1);
 			}
 		}
-	},
-	getSelection: function() {
-		return selection;
 	},
 	getChildren: function() {
 		selection.length = 0;
@@ -116,7 +122,10 @@ Node.prototype = {
 		return selection;
 	},
 	selectChildren: function() {
+		// push all children into the list
 		selection.push.apply(selection, this.children);
+		
+		// recurse if there are sub-nodes
 		if (this.q1 !== null) {
 			this.q1.selectChildren();
 			this.q2.selectChildren();
@@ -188,6 +197,60 @@ Node.prototype = {
 					selection.push(this.children[i]);
 				}
 			}
+		}
+	},
+	// TODO: the following methods are basically hacks built on the get methods,
+	// they can run faster. The apply functions in particular should get a boost
+	// by not needing to do list manipulation
+	mapChildren: function(callback) {
+		selection.length = 0;
+		this.selectChildren();
+		var n = selection.length;
+		for (var i=0; i<n; i++) {
+			selection[i] = callback(selection[i]);
+		}
+		return selection;
+	},
+	mapEnclosed: function(xMin, yMin, xMax, yMax, callback) {
+		selection.length = 0;
+		this.selectEnclosed(xMin, yMin, xMax, yMax);
+		var n = selection.length;
+		for (var i=0; i<n; i++) {
+			selection[i] = callback(selection[i]);
+		}
+		return selection;
+	},
+	mapOverlapping: function(xMin, yMin, xMax, yMax, callback) {
+		selection.length = 0;
+		this.selectOverlapping(xMin, yMin, xMax, yMax);
+		var n = selection.length;
+		for (var i=0; i<n; i++) {
+			selection[i] = callback(selection[i]);
+		}
+		return selection;
+	},
+	applyChildren: function(callback) {
+		selection.length = 0;
+		this.selectChildren();
+		var n = selection.length;
+		for (var i=0; i<n; i++) {
+			callback(selection[i]);
+		}
+	},
+	applyEnclosed: function(xMin, yMin, xMax, yMax, callback) {
+		selection.length = 0;
+		this.selectEnclosed(xMin, yMin, xMax, yMax);
+		var n = selection.length;
+		for (var i=0; i<n; i++) {
+			callback(selection[i]);
+		}
+	},
+	applyOverlapping: function(xMin, yMin, xMax, yMax, callback) {
+		selection.length = 0;
+		this.selectOverlapping(xMin, yMin, xMax, yMax);
+		var n = selection.length;
+		for (var i=0; i<n; i++) {
+			callback(selection[i]);
 		}
 	}
 };
